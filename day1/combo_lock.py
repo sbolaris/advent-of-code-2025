@@ -89,6 +89,8 @@ def main():
         print("Actual document loaded. length:", len(actual_document))
     password = safe_cracker(starting_position, actual_document)
     print("The password to the safe is:", password)
+    hex_password = method_hex(starting_position, actual_document)
+    print("The hex method password to the safe is:", hex_password)
 
 if __name__ == "__main__":
     main()
