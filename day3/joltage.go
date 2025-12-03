@@ -53,6 +53,57 @@ func sumIntSlice(ints []int) int {
 
 // function for part 2
 // now joltages instead of two batteries, find 12 batteries that give max joltage
+func jotlage_meter12(batt_bank string) int {
+	max_joltage := 0
+	// parse input into list of integers
+	batteries := []int{}
+	indexes := []int{}
+	for i, char := range batt_bank {
+		digit, err := strconv.Atoi(string(char))
+		if err != nil {
+			fmt.Println("Error converting character to integer:", err)
+			continue
+		}
+		if len(batteries) < 12 {
+			batteries = append(batteries, digit)
+			indexes = append(indexes, i)
+		} else {
+			// find min in batteries
+			for j, val := range batteries {
+				if digit > val {
+					// replace min with new digit
+					batteries[j] = digit
+					indexes[j] = i
+					break
+				}
+			}
+		}
+	}
+	// combine batteries into single int
+	// sort indexes
+	for i := 0; i < len(indexes)-1; i++ {
+		for j := i + 1; j < len(indexes); j++ {
+			if indexes[i] > indexes[j] {
+				// swap
+				indexes[i], indexes[j] = indexes[j], indexes[i]
+				batteries[i], batteries[j] = batteries[j], batteries[i]
+			}
+		}
+	}
+	// combine into single int
+	combined_joltage := ""
+	for _, val := range batteries {
+		combined_joltage += strconv.Itoa(val)
+	}
+	combined_int, err := strconv.Atoi(combined_joltage)
+	if err != nil {
+		fmt.Println("Error converting combined joltage to integer:", err)
+		return 0
+	}
+	max_joltage = combined_int
+	return max_joltage	
+}
+
 
 // main function
 func main() {
@@ -79,10 +130,16 @@ func main() {
 		total_joltage = append(total_joltage, joltage)
 		//total_joltage = append(total_joltage, go jotlage_meter(string(lines)))
 		// call part 2 function and print result
+		joltage12 := jotlage_meter12(string(lines))
+		//fmt.Println("Joltage Meter Reading with 12 batteries: ", joltage12) 
+		total_joltage12 = append(total_joltage12, joltage12)
+
 	}
 	file.Close()
 	sum_joltage := sumIntSlice(total_joltage) //16854
 	fmt.Println("Total Joltage Meter Reading with 2 batteries: ", sum_joltage)
+	sum_joltage12 := sumIntSlice(total_joltage12) //230303736
+	fmt.Println("Total Joltage Meter Reading with 12 batteries: ", sum_joltage12)
 	
 	
 	
