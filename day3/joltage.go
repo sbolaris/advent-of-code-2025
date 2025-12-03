@@ -20,10 +20,7 @@ func jotlage_meter(batt_bank string) int {
 			fmt.Println("Error converting character to integer:", err)
 			continue
 		}
-		for j, char2 := range batt_bank[i+1:] {
-			if i == j {
-				continue // skip same index
-			}
+		for _, char2 := range batt_bank[i+1:] {
 			digit2, err := strconv.Atoi(string(char2))
 			if err != nil {
 				fmt.Println("Error converting character to integer:", err)
@@ -55,32 +52,40 @@ func sumIntSlice(ints []int) int {
 
 
 // function for part 2
+// now joltages instead of two batteries, find 12 batteries that give max joltage
 
 // main function
 func main() {
 	fmt.Println("Advent of Code 2025 - Day 3")
 	//read input file to pass to functions 
-	file_path := "./test_input.txt"
+	//file_path := "./test_input.txt"
+	file_path := "./input.txt"
 	file, err := os.Open(file_path)
 	if err != nil {
 		fmt.Println("Error reading file:", err)
 		return
 	}
 	total_joltage := []int{}
+	total_joltage12 := []int{}
 	scanner := bufio.NewScanner(file)
+	//go workers := 4
 	for scanner.Scan() {
 		lines := scanner.Text()
 		// call joltage meter function and print result
 		fmt.Println("Processing line: ", string(lines))
+		// call part 1 function and print result
 		joltage := jotlage_meter(string(lines))
-		fmt.Println("Joltage Meter Reading: ", joltage)
+		//fmt.Println("Joltage Meter Reading: ", joltage) 
 		total_joltage = append(total_joltage, joltage)
+		//total_joltage = append(total_joltage, go jotlage_meter(string(lines)))
+		// call part 2 function and print result
 	}
-	sum_joltage := sumIntSlice(total_joltage)
-	fmt.Println("Total Joltage Meter Reading: ", sum_joltage)
+	file.Close()
+	sum_joltage := sumIntSlice(total_joltage) //16854
+	fmt.Println("Total Joltage Meter Reading with 2 batteries: ", sum_joltage)
 	
 	
-	// call part 1 function and print result
+	
 
-	// call part 2 function and print result
+	
 }
