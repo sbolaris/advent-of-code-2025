@@ -54,7 +54,7 @@ func forklift_navigation(paper_rolls [][]rune, remove bool) int {
 	return accessible_rolls
 }
 
-// part B
+// part B --- 9518
 // now the elves need help moving the rolls of paper
 // once a roll can be accessed it can be removed and the forklift can move to that position (x)
 func forklift_navigation_remove(paper_rolls [][]rune) int {
