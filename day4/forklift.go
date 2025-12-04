@@ -5,14 +5,16 @@ import "fmt"
 import "bufio"
 import "os"
 
-// part A
+// part A --- 1602
 // the @ symbol are rolls of paper 
 // the forklift can only access paper if there are fewer than 4 rolls of paper in the 8 adjacent positions
 // identify which rolls of paper can be accessed by the forklift
 // return the number of accessible rolls of paper
 // change accessible rolls of paper by moving the forklift to x 
-func forklift_navigation(paper_rolls [][]rune) int {
+func forklift_navigation(paper_rolls [][]rune, remove bool) int {
 	accessible_rolls := 0
+	x := []int{}
+	y := []int{}
 	// at i, j positions to see if less than 4 adjacent @ symbols
 	for i := 0; i < len(paper_rolls); i++ {
 		for j := 0; j < len(paper_rolls[i]); j++ {
@@ -36,14 +38,36 @@ func forklift_navigation(paper_rolls [][]rune) int {
 				if adjacent_count < 4 {
 					//fmt.Println("Accessible roll of paper at: ", i, j)
 					accessible_rolls++
+					if remove {
+						x = append(x, i)
+						y = append(y, j)
+					}
 				}
 			}
+		}
+	}
+	if remove {
+		for idx := 0; idx < len(x); idx++ {
+			paper_rolls[x[idx]][y[idx]] = '.'
 		}
 	}
 	return accessible_rolls
 }
 
 // part B
+// now the elves need help moving the rolls of paper
+// once a roll can be accessed it can be removed and the forklift can move to that position (x)
+func forklift_navigation_remove(paper_rolls [][]rune) int {
+	total_accessible := 0
+	for {
+		accessible := forklift_navigation(paper_rolls, true)
+		if accessible == 0 {
+			break
+		}
+		total_accessible += accessible
+	}
+	return total_accessible
+}
 
 //create function to read the map from the elfs (input file)
 func readPaperRollsFromFile(filePath string) [][]rune {
@@ -74,7 +98,9 @@ func main() {
 	file_path := "./input.txt"
 	var paper_rolls = readPaperRollsFromFile(file_path)
 	// call part A function and print result
-	accessible_rolls := forklift_navigation(paper_rolls)
+	accessible_rolls := forklift_navigation(paper_rolls, false)
 	fmt.Println("Accessible Rolls of Paper: ", accessible_rolls)
-	// call part B function and print result
+	//call part B function and print result
+	accessible_rolls_remove := forklift_navigation_remove(paper_rolls)
+	fmt.Println("Total Accessible Rolls of Paper after removal: ", accessible_rolls_remove)
 }
