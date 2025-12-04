@@ -136,7 +136,7 @@ func main() {
 	file.Close()
 	sum_joltage := sumIntSlice(total_joltage) //16854
 	fmt.Println("Total Joltage Meter Reading with 2 batteries: ", sum_joltage)
-	sum_joltage12 := sumIntSlice(total_joltage12)
+	sum_joltage12 := sumIntSlice(total_joltage12) //167526011932478
 	fmt.Println("Total Joltage Meter Reading with 12 batteries: ", sum_joltage12)
 	
 	
