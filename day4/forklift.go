@@ -2,6 +2,8 @@
 package main
 
 import "fmt"
+import "bufio"
+import "os"
 
 // part A
 // the @ symbol are rolls of paper 
@@ -9,33 +11,70 @@ import "fmt"
 // identify which rolls of paper can be accessed by the forklift
 // return the number of accessible rolls of paper
 // change accessible rolls of paper by moving the forklift to x 
-func forklift_navigation(paper_rolls string) int {
+func forklift_navigation(paper_rolls [][]rune) int {
 	accessible_rolls := 0
-	// parse input into 2D grid
-	grid := [][]rune{}
 	// at i, j positions to see if less than 4 adjacent @ symbols
-	for i, row := range paper_rolls {
-		grid_row := []rune{}
-		for _, char := range row {
-			grid_row = append(grid_row, char)
+	for i := 0; i < len(paper_rolls); i++ {
+		for j := 0; j < len(paper_rolls[i]); j++ {
+			if paper_rolls[i][j] == '@' {
+				adjacent_count := 0
+				// check 8 adjacent positions
+				for x := -1; x <= 1; x++ {
+					for y := -1; y <= 1; y++ {
+						if x == 0 && y == 0 {
+							continue
+						}
+						adj_i := i + x
+						adj_j := j + y
+						if adj_i >= 0 && adj_i < len(paper_rolls) && adj_j >= 0 && adj_j < len(paper_rolls[i]) {
+							if paper_rolls[adj_i][adj_j] == '@' {
+								adjacent_count++
+							}
+						}
+					}
+				}
+				if adjacent_count < 4 {
+					//fmt.Println("Accessible roll of paper at: ", i, j)
+					accessible_rolls++
+				}
+			}
 		}
-		grid = append(grid, grid_row)
 	}
+	return accessible_rolls
 }
 
 // part B
 
+//create function to read the map from the elfs (input file)
+func readPaperRollsFromFile(filePath string) [][]rune {
+	paper_rolls := [][]rune{}
+	file, err := os.Open(filePath)
+	if err != nil {
+		fmt.Println("Error reading file:", err)
+		return paper_rolls
+	}
+	scanner := bufio.NewScanner(file)
+	for scanner.Scan() {
+		lines := scanner.Text()
+		row := []rune{}
+		for _, char := range lines {
+			row = append(row, char)
+		}
+		paper_rolls = append(paper_rolls, row)
+	}
+	file.Close()
+	return paper_rolls
+}
+
 func main() {
 	fmt.Println("Day 4: Forklift Navigation")
-}
-
-//test and benchmark part A fucntions
-func benchmarkForklift_A() {
-	fmt.Println("Benchmarking Forklift A")
-	input  := "input.txt"
-
-}
-//test and benchmark part B fucntions
-func benchmarkForklift_B() {
-	fmt.Println("Benchmarking Forklift B")
+	// read input file line by line
+	// put each character a 2D grid
+	// call forklift navigation function and print result
+	file_path := "./input.txt"
+	var paper_rolls = readPaperRollsFromFile(file_path)
+	// call part A function and print result
+	accessible_rolls := forklift_navigation(paper_rolls)
+	fmt.Println("Accessible Rolls of Paper: ", accessible_rolls)
+	// call part B function and print result
 }
