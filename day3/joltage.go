@@ -107,8 +107,8 @@ func jotlage_meter12(batt_bank string) int {
 func main() {
 	fmt.Println("Advent of Code 2025 - Day 3")
 	//read input file to pass to functions 
-	file_path := "./test_input.txt"
-	//file_path := "./input.txt"
+	//file_path := "./test_input.txt"
+	file_path := "./input.txt"
 	file, err := os.Open(file_path)
 	if err != nil {
 		fmt.Println("Error reading file:", err)
