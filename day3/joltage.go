@@ -115,7 +115,7 @@ func main() {
 		return
 	}
 	total_joltage := []int{}
-	total_joltage12 := []int{}
+	//total_joltage12 := []int{}
 	scanner := bufio.NewScanner(file)
 	//go workers := 4
 	for scanner.Scan() {
