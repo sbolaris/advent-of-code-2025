@@ -39,7 +39,7 @@ func countAllPossibleFreshItems(fresh_ranges []string) int {
 	var mu sync.Mutex
 	range_chan := make(chan string, len(fresh_ranges))
 	//start workers
-	for i := 0; i < workers; i++ {
+	for i := 0; i < 6; i++ {
 		go countPossibleItems(mu, range_chan, covered_ids)
 	}
 	return total_possible_fresh
@@ -68,27 +68,26 @@ func isFresh(item_id int, fresh_range string, is_fresh chan<- bool) {
 	}
 }
 
-func countPossibleItems(mu sync.Mutex, range_chan <-chan string, covered_ids map[int]bool) {
-	worker := func() {
-		for fresh_range := range range_chan {
-			ranges := strings.Split(fresh_range, "-")
-			if len(ranges) != 2 {
-				fmt.Println("Invalid range format:", fresh_range)
-				continue
-			}
-			start, err1 := strconv.Atoi(ranges[0])
-			end, err2 := strconv.Atoi(ranges[1])
-			if err1 != nil || err2 != nil {
-				fmt.Println("Error converting range bounds to integers:", err1, err2)
-				continue
-			}
-			mu.Lock()
-			for id := start; id <= end; id++ {
-				covered_ids[id] = true
-			}
-			mu.Unlock()
+func countPossibleItems(mu sync.Mutex, range_chan chan<- string, covered_ids map[int]bool) {
+	for fresh_range := range range_chan {
+		ranges := strings.Split(fresh_range, "-")
+		if len(ranges) != 2 {
+			fmt.Println("Invalid range format:", fresh_range)
+			continue
 		}
+		start, err1 := strconv.Atoi(ranges[0])
+		end, err2 := strconv.Atoi(ranges[1])
+		if err1 != nil || err2 != nil {
+			fmt.Println("Error converting range bounds to integers:", err1, err2)
+			continue
+		}
+		mu.Lock()
+		for id := start; id <= end; id++ {
+			covered_ids[id] = true
+		}
+		mu.Unlock()
 	}
+}
 
 
 //database acesss
@@ -141,7 +140,7 @@ func main() {
 	number_of_fresh_items := countFreshItems(fresh_range, item_ids)
 	fmt.Println("Number of fresh items in inventory: ", number_of_fresh_items) //840
 	//part b - total possible fresh items based on ranges
-	total_possible_fresh := countAllPossibleFreshItems(fresh_range, 6)
+	total_possible_fresh := countAllPossibleFreshItems(fresh_range)
 	fmt.Println("Total possible fresh items based on ranges: ", total_possible_fresh)
 	wg.Done()
 }
