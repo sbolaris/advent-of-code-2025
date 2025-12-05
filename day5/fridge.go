@@ -32,27 +32,15 @@ func countFreshItems(fresh_ranges []string, item_ids []int) int {
 //part B
 // using only the ranges provided in the fresh range determine how many items are fresh
 // the ranges can overlap so need to account for that 16-20 and 18-22 only count 16-22 once
+// need to sort and merge the ranges first then count total items based on merged ranges
 func countAllPossibleFreshItems(fresh_ranges []string) int {
 	total_possible_fresh := 0
 	covered_ids := make(map[int]bool)
-	for _, fresh_range := range fresh_ranges {
-		ranges := strings.Split(fresh_range, "-")
-		if len(ranges) != 2 {
-			fmt.Println("Invalid range format:", fresh_range)
-			continue
-		}
-		start, err1 := strconv.Atoi(ranges[0])
-		end, err2 := strconv.Atoi(ranges[1])
-		if err1 != nil || err2 != nil {
-			fmt.Println("Error converting range bounds to integers:", err1, err2)
-			continue
-		}
-		for id := start; id <= end; id++ {
-			if !covered_ids[id] {
-				covered_ids[id] = true
-				total_possible_fresh += 1
-			}
-		}
+	var mu sync.Mutex
+	range_chan := make(chan string, len(fresh_ranges))
+	//start workers
+	for i := 0; i < workers; i++ {
+		go countPossibleItems(mu, range_chan, covered_ids)
 	}
 	return total_possible_fresh
 }
@@ -79,6 +67,28 @@ func isFresh(item_id int, fresh_range string, is_fresh chan<- bool) {
 		is_fresh <- false
 	}
 }
+
+func countPossibleItems(mu sync.Mutex, range_chan <-chan string, covered_ids map[int]bool) {
+	worker := func() {
+		for fresh_range := range range_chan {
+			ranges := strings.Split(fresh_range, "-")
+			if len(ranges) != 2 {
+				fmt.Println("Invalid range format:", fresh_range)
+				continue
+			}
+			start, err1 := strconv.Atoi(ranges[0])
+			end, err2 := strconv.Atoi(ranges[1])
+			if err1 != nil || err2 != nil {
+				fmt.Println("Error converting range bounds to integers:", err1, err2)
+				continue
+			}
+			mu.Lock()
+			for id := start; id <= end; id++ {
+				covered_ids[id] = true
+			}
+			mu.Unlock()
+		}
+	}
 
 
 //database acesss
@@ -131,7 +141,7 @@ func main() {
 	number_of_fresh_items := countFreshItems(fresh_range, item_ids)
 	fmt.Println("Number of fresh items in inventory: ", number_of_fresh_items) //840
 	//part b - total possible fresh items based on ranges
-	total_possible_fresh := countAllPossibleFreshItems(fresh_range)
+	total_possible_fresh := countAllPossibleFreshItems(fresh_range, 6)
 	fmt.Println("Total possible fresh items based on ranges: ", total_possible_fresh)
 	wg.Done()
 }
