@@ -29,7 +29,26 @@ func countFreshItems(fresh_ranges []string, item_ids []int) int {
 
 
 
-//part B 
+//part B
+// using only the ranges provided in the fresh range determine how many items are fresh
+func countAllPossibleFreshItems(fresh_ranges []string) int {
+	total_possible_fresh := 0
+	for _, fresh_range := range fresh_ranges {
+		ranges := strings.Split(fresh_range, "-")
+		if len(ranges) != 2 {
+			fmt.Println("Invalid range format:", fresh_range)
+			continue
+		}
+		start, err1 := strconv.Atoi(ranges[0])
+		end, err2 := strconv.Atoi(ranges[1])
+		if err1 != nil || err2 != nil {
+			fmt.Println("Error converting range bounds to integers:", err1, err2)
+			continue
+		}
+		total_possible_fresh += (end - start + 1)
+	}
+	return total_possible_fresh
+}
 
 //subroutines
 func isFresh(item_id int, fresh_range string, is_fresh chan<- bool) {
@@ -53,6 +72,7 @@ func isFresh(item_id int, fresh_range string, is_fresh chan<- bool) {
 		is_fresh <- false
 	}
 }
+
 
 //database acesss
 // take in file from input read each line and put the first set in to the fresh range
@@ -100,8 +120,10 @@ func main() {
 	fmt.Println("Fresh Range: ", fresh_range)
 	fmt.Println("Item IDs: ", item_ids)
 	//check each item id if fresh
-	wg.Add(4)
+	wg.Add(7)
 	number_of_fresh_items := countFreshItems(fresh_range, item_ids)
-	fmt.Println("Number of fresh items in inventory: ", number_of_fresh_items)
+	fmt.Println("Number of fresh items in inventory: ", number_of_fresh_items) //840
 	wg.Done()
+	total_possible_fresh := countAllPossibleFreshItems(fresh_range)
+	fmt.Println("Total possible fresh items based on ranges: ", total_possible_fresh)
 }
