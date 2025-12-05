@@ -150,11 +150,11 @@ func main() {
 	fmt.Println("Fresh Range: ", fresh_range)
 	fmt.Println("Item IDs: ", item_ids)
 	//check each item id if fresh
-	wg.Add(6)
+	wg.Add(8)
 	number_of_fresh_items := countFreshItems(fresh_range, item_ids)
 	fmt.Println("Number of fresh items in inventory: ", number_of_fresh_items) //840
 	//part b - total possible fresh items based on ranges
 	total_possible_fresh := countAllPossibleFreshItems(fresh_range)
-	fmt.Println("Total possible fresh items based on ranges: ", total_possible_fresh)
+	fmt.Println("Total possible fresh items based on ranges: ", total_possible_fresh) //359913027576322
 	wg.Done()
 }
