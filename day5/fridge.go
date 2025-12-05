@@ -6,6 +6,8 @@ import(
  	"strconv"
  	"os"
 	"bufio"
+	"strings"
+	"sync"
 )
 
 //part A 
@@ -102,5 +104,4 @@ func main() {
 	number_of_fresh_items := countFreshItems(fresh_range, item_ids)
 	fmt.Println("Number of fresh items in inventory: ", number_of_fresh_items)
 	wg.Done()
-	wg.Wait()
 }
