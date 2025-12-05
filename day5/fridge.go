@@ -31,8 +31,10 @@ func countFreshItems(fresh_ranges []string, item_ids []int) int {
 
 //part B
 // using only the ranges provided in the fresh range determine how many items are fresh
+// the ranges can overlap so need to account for that 16-20 and 18-22 only count 16-22 once
 func countAllPossibleFreshItems(fresh_ranges []string) int {
 	total_possible_fresh := 0
+	covered_ids := make(map[int]bool)
 	for _, fresh_range := range fresh_ranges {
 		ranges := strings.Split(fresh_range, "-")
 		if len(ranges) != 2 {
@@ -45,7 +47,12 @@ func countAllPossibleFreshItems(fresh_ranges []string) int {
 			fmt.Println("Error converting range bounds to integers:", err1, err2)
 			continue
 		}
-		total_possible_fresh += (end - start + 1)
+		for id := start; id <= end; id++ {
+			if !covered_ids[id] {
+				covered_ids[id] = true
+				total_possible_fresh += 1
+			}
+		}
 	}
 	return total_possible_fresh
 }
@@ -120,10 +127,11 @@ func main() {
 	fmt.Println("Fresh Range: ", fresh_range)
 	fmt.Println("Item IDs: ", item_ids)
 	//check each item id if fresh
-	wg.Add(7)
+	wg.Add(6)
 	number_of_fresh_items := countFreshItems(fresh_range, item_ids)
 	fmt.Println("Number of fresh items in inventory: ", number_of_fresh_items) //840
-	wg.Done()
+	//part b - total possible fresh items based on ranges
 	total_possible_fresh := countAllPossibleFreshItems(fresh_range)
 	fmt.Println("Total possible fresh items based on ranges: ", total_possible_fresh)
+	wg.Done()
 }
