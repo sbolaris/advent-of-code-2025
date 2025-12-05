@@ -95,7 +95,7 @@ func access_database(file_path string) ([]string, []int) {
 func main() {
 	var wg sync.WaitGroup
 	fmt.Println("Advent of Code 2025 Day 5 inventory management")
-	file_path := "./test_input.txt"
+	file_path := "./input.txt"
 	fresh_range, item_ids := access_database(file_path)
 	fmt.Println("Fresh Range: ", fresh_range)
 	fmt.Println("Item IDs: ", item_ids)
