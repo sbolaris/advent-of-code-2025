@@ -71,35 +71,39 @@ func vertical_math (worksheet [][]rune) int{
 	vertical_nums := []int{}
 	for col := num_columns; 0 < num_columns; col-- {
 		// get the operand from the last row
-		operand := worksheet[num_rows-1][col]
+		operand := string(worksheet[num_rows-1][col])
 		// perform operation on all numbers above it
 		column_result := 0
-		current_number = worksheet[0:num_rows-1][col]
-		fmt.Println("current number is: " current_number)
+		current_number, err := strconv.Atoi(string(worksheet[0:num_rows-1][col]))
+		if err != nil {
+			fmt.Println("Error converting to integer:", err)
+			continue
+		}
+		fmt.Println("current number is: ", current_number)
 		vertical_nums = append(vertical_nums, current_number) 
 		if operand != ""{
-			for num := range(vertical_nums){
+			for _, num := range(vertical_nums){
 				switch operand {
 				case "+":
 					column_result += num
 				case "-":
 					column_result -= num
 				case "*":
-					if row == 0 {
-						column_result = num
-					} else {
+					//if row == 0 {
+						//column_result = num
+					//} else {
 						column_result *= num
-					}
+					//}
 				case "/":
-					if row == 0 {
-						column_result = num
-					} else {
+					// if row == 0 {
+					// 	column_result = num
+					// } else {
 						if num != 0 {
 							column_result /= num
 						} else {
 							fmt.Println("Division by zero encountered.")
 						}
-					}
+					//}
 				default:
 					fmt.Println("Unknown operand:", operand)
 				}
@@ -108,6 +112,7 @@ func vertical_math (worksheet [][]rune) int{
 			vertical_nums = []int{}
 		}
 	}
+	return final_result
 
 }
 
@@ -130,17 +135,12 @@ func main() {
 		// process line
 		math_problems = append(math_problems, feilds)
 	}
-	file.Close()
+	//file.Close()
 	// call cephlamath solver function
 	result := cephlamath_solver(math_problems)
 	fmt.Println("Cephlamath Final Result: ", result)
 	// part b requires the file be read in differently and not split into fields
-	file, err := os.Open("test_input.txt")
-	if err != nil {
-		fmt.Println("Error opening file:", err)
-		return
-	}
-	scanner := bufio.NewScanner(file)
+	scanner = bufio.NewScanner(file)
 	problems_math := [][]rune{}
 	for scanner.Scan() {
 		lines := scanner.Text()
@@ -149,7 +149,8 @@ func main() {
 	}
 	file.Close()
 	//call part B where it read the numbers as the cols instead of human math
-	
+	resultB := vertical_math(problems_math)
+	fmt.Println("Cephlamath Final Result: ", resultB)
 
 
 }
