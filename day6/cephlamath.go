@@ -59,8 +59,56 @@ func cephlamath_solver(worksheet [][]string) int {
 }
 
 //fucntion for part 2
-func vertical_math (worksheet [][]rune) int {
-	
+// need to read the file from right to left all the rows in the column form that number 
+// do operations on all the numbers in that problem 
+func vertical_math (worksheet [][]rune) int{
+	// go through runes the check that that the last one by be a math operator
+	final_result := 0
+	// iterate over columns
+	num_columns := len(worksheet[0])
+	num_rows := len(worksheet)
+	// Can you do this recusrively?
+	vertical_nums := []int{}
+	for col := num_columns; 0 < num_columns; col-- {
+		// get the operand from the last row
+		operand := worksheet[num_rows-1][col]
+		// perform operation on all numbers above it
+		column_result := 0
+		current_number = worksheet[0:num_rows-1][col]
+		fmt.Println("current number is: " current_number)
+		vertical_nums = append(vertical_nums, current_number) 
+		if operand != ""{
+			for num := range(vertical_nums){
+				switch operand {
+				case "+":
+					column_result += num
+				case "-":
+					column_result -= num
+				case "*":
+					if row == 0 {
+						column_result = num
+					} else {
+						column_result *= num
+					}
+				case "/":
+					if row == 0 {
+						column_result = num
+					} else {
+						if num != 0 {
+							column_result /= num
+						} else {
+							fmt.Println("Division by zero encountered.")
+						}
+					}
+				default:
+					fmt.Println("Unknown operand:", operand)
+				}
+			}
+			final_result += column_result
+			vertical_nums = []int{}
+		}
+	}
+
 }
 
 
@@ -101,6 +149,7 @@ func main() {
 	}
 	file.Close()
 	//call part B where it read the numbers as the cols instead of human math
+	
 
 
 }
