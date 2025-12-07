@@ -59,13 +59,17 @@ func cephlamath_solver(worksheet [][]string) int {
 }
 
 //fucntion for part 2
+func vertical_math (worksheet [][]rune) int {
+	
+}
+
 
 //main function
 func main() {
 	fmt.Println("Cephlamath Day 6")
 	// open input file
-	file, err := os.Open("test_input.txt")
-	//file, err := os.Open("input.txt")
+	//file, err := os.Open("test_input.txt")
+	file, err := os.Open("input.txt")
 	if err != nil {
 		fmt.Println("Error opening file:", err)
 		return
@@ -82,6 +86,21 @@ func main() {
 	// call cephlamath solver function
 	result := cephlamath_solver(math_problems)
 	fmt.Println("Cephlamath Final Result: ", result)
+	// part b requires the file be read in differently and not split into fields
+	file, err := os.Open("test_input.txt")
+	if err != nil {
+		fmt.Println("Error opening file:", err)
+		return
+	}
+	scanner := bufio.NewScanner(file)
+	problems_math := [][]rune{}
+	for scanner.Scan() {
+		lines := scanner.Text()
+		lineOfRunes := []rune(lines)
+		problems_math = append(problems_math, lineOfRunes)
+	}
+	file.Close()
+	//call part B where it read the numbers as the cols instead of human math
 
 
 }
