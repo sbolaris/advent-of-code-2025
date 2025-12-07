@@ -6,6 +6,7 @@ import(
 	"os"
 	"bufio"
 	"strings"
+	"time"
 )
 
 //fucntion for part 1
@@ -91,7 +92,7 @@ func vertical_math (worksheet [][]rune) int{
 				fmt.Println("Error converting to integer:", err, "for string:", number_str)
 				continue
 			}
-			fmt.Println("Current number is:", current_number, "from column", col)
+			//fmt.Println("Current number is:", current_number, "from column", col)
 			vertical_nums = append(vertical_nums, current_number)
 		}
 		
@@ -128,7 +129,7 @@ func vertical_math (worksheet [][]rune) int{
 					fmt.Println("Unknown operand:", operand)
 				}
 			}
-			fmt.Println("Column result for operand", operand, ":", column_result)
+			//fmt.Println("Column result for operand", operand, ":", column_result)
 			final_result += column_result
 			vertical_nums = []int{} // Reset for next operation
 		}
@@ -139,9 +140,16 @@ func vertical_math (worksheet [][]rune) int{
 //main function
 func main() {
 	fmt.Println("Cephlamath Day 6")
+	
+	// Check if benchmark mode is requested
+	if len(os.Args) > 1 && os.Args[1] == "benchmark" {
+		RunBenchmarks()
+		return
+	}
+	
 	// open input file
 	//file, err := os.Open("test_input.txt")
-	file, err := os.Open("test_input.txt")
+	file, err := os.Open("input.txt")
 	if err != nil {
 		fmt.Println("Error opening file:", err)
 		return
@@ -154,10 +162,14 @@ func main() {
 		// process line
 		math_problems = append(math_problems, feilds)
 	}
-	// file.Close()
+	
 	// call cephlamath solver function
+	start := time.Now()
 	result := cephlamath_solver(math_problems)
-	fmt.Println("Cephlamath Final Result: ", result)
+	duration := time.Since(start)
+	fmt.Printf("Cephlamath Final Result: %d\n", result)
+	fmt.Printf("Time taken for cephlamath_solver: %v\n", duration)
+	
 	// part b requires the file be read in differently and not split into fields
 	_, err = file.Seek(0, 0) // reset file pointer to beginning
 	if err != nil {
@@ -173,9 +185,11 @@ func main() {
 		problems_math = append(problems_math, runes)
 	}
 	file.Close()
+	
 	//call part B where it read the numbers as the cols instead of human math
-	fmt.Println("Starting Vertical Math Solver")
-	fmt.Println("Problems Math: ", problems_math)
+	start = time.Now()
 	resultB := vertical_math(problems_math)
-	fmt.Println("Cephlamath Final Result: ", resultB)
+	duration = time.Since(start)
+	fmt.Printf("Cephlamath Final Result B: %d\n", resultB)
+	fmt.Printf("Time taken for vertical_math: %v\n", duration)
 }
