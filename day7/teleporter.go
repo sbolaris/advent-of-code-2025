@@ -42,11 +42,15 @@ func quantam_entanglement(teleporter_data [][]rune) int {
 	//branches := 0
 	splits := 0
 	for row := 1; row < num_rows; row++ {
-		old_beam := tachyon_beam
+		//old_beam := tachyon_beam
 		tachyon_beam, splits = tachyon_emitter(teleporter_data[row], tachyon_beam)
-		time_lines += (len(tachyon_beam) -len(old_beam)) * splits *2
+		//time_lines += (len(tachyon_beam) -len(old_beam)) * splits *2 // this got me close with 44
+		if row != 1 && splits > 0 {
+			time_lines += len(tachyon_beam)
+		}
 		//debug statement
-		//fmt.Println("Time lines so far: ", time_lines, "after row ", row)
+		//fmt.Println("Time lines so far: ", time_lines, "for row ", row, "with beam positions ", tachyon_beam)
+
 	}
 
 	return time_lines
