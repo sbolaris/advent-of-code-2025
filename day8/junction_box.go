@@ -7,50 +7,22 @@ import(
 	"bufio"
 	"strings"
 	"time"
-	"runtime"
-	"sync"
 	"math"
 	"slices"
 )
 
 // function for part A
-// given x,y,z from input, find the shortest path to the junction box
+// given x,y,z coordinates, find groups of connected junction boxes
+// based on closest neighbor distances and multiply their group sizes together
 func circuits_optimizer(junction_data [][]int) int {
-	//create max workers based on cpu cores
-	numCores := runtime.NumCPU()
-	fmt.Printf("Using %d CPU cores for optimization\n", numCores)
-	var wg sync.WaitGroup
-	wg.Add(numCores)
-	closest_box := make(chan int, numCores)
-	//create worker pool
-	// iterate over junction data and find nearest junction
-	for _, junction := range junction_data {
-		fmt.Println(junction)
-		go findNearestJunction(junction, junction_data, closest_box)
-		defer wg.Done()
-	}
-	
-	
-	//collect results
-	for boxIndex := range closest_box {
-		fmt.Println("Nearest Junction Box Index: ", boxIndex)
-	}
-	go func() {
-        wg.Wait()
-        close(closest_box)
-    }()
-	return 0
 
 }
-
-// function for part B
-
 
 //subroutines
 //load data input
 func loadJunctionData(filename string) [][]int {
 	file, err := os.Open(filename)
-	if err != nil {
+	if (err != nil) {
 		panic("Error opening file: " + err.Error())
 	}
 	defer file.Close()
@@ -71,21 +43,6 @@ func loadJunctionData(filename string) [][]int {
 	return junction_data
 }
 
-//find nearsest junction
-func findNearestJunction(current_position []int, junctions [][]int, closest_box chan<- int) {
-	min_distance := -1.0
-	nearest_index := -1
-	for i, junction := range junctions {
-		if slices.Equal(junction,current_position) == false {
-			distance := math.Abs(float64(current_position[0]-junction[0])) + math.Abs(float64(current_position[1]-junction[1])) +math.Abs(float64(current_position[2]-junction[2]))
-			if min_distance == -1 || distance < min_distance {
-				min_distance = distance
-				nearest_index = i
-			}
-		}
-	}
-	closest_box <- nearest_index
-}
 
 
 //main function
