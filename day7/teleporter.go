@@ -3,12 +3,10 @@ package main
 
 import(
 	"fmt"
-	"strconv"
 	"os"
 	"bufio"
 	"strings"
 	"time"
-	"runtime"
 )
 
 // function for part A
@@ -20,7 +18,6 @@ func tachyon_spliter(teleporter_data [][]rune) int {
 	final_splits := 0
 	// iterate over rows
 	num_rows := len(teleporter_data)
-	num_cols := len(teleporter_data[0])
 	start_index := strings.Index(string(teleporter_data[0]), "S")
 	tachyon_beam := []int{start_index}
 	splits := 0
