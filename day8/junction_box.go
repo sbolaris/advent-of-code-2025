@@ -7,9 +7,10 @@ import(
 	"bufio"
 	"strings"
 	"time"
-	"slices"
 	"runtime"
 	"sync"
+	"math"
+	"slices"
 )
 
 // function for part A
@@ -23,15 +24,17 @@ func circuits_optimizer(junction_data [][]int) int {
 	closest_box := make(chan int, numCores)
 	//create worker pool
 	// iterate over junction data and find nearest junction
-	
 	for _, junction := range junction_data {
 		fmt.Println(junction)
 		go findNearestJunction(junction, junction_data, closest_box, &wg)
 	}
 	wg.Wait()
-	close(circuits)
+	close(closest_box)
 	//collect results
-	return 
+	for boxIndex := range closest_box {
+		fmt.Println("Nearest Junction Box Index: ", boxIndex)
+	}
+	return 0
 
 }
 
@@ -66,11 +69,11 @@ func loadJunctionData(filename string) [][]int {
 //find nearsest junction
 func findNearestJunction(current_position []int, junctions [][]int, closest_box chan<- int, wg *sync.WaitGroup) {
 	defer wg.Done()
-	min_distance := -1
+	min_distance := -1.0
 	nearest_index := -1
 	for i, junction := range junctions {
-		if junction != current_position {
-			distance := abs(current_position[0]-junction[0]) + abs(current_position[1]-junction[1]) + abs(current_position[2]-junction[2])
+		if slices.Equal(junction,current_position) == false {
+			distance := math.Abs(float64(current_position[0]-junction[0])) + math.Abs(float64(current_position[1]-junction[1])) +math.Abs(float64(current_position[2]-junction[2]))
 			if min_distance == -1 || distance < min_distance {
 				min_distance = distance
 				nearest_index = i
