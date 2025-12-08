@@ -119,6 +119,46 @@ func TestTachyonEmitterFunction(t *testing.T) {
 	}
 }
 
+// Test quantum entanglement functions
+func TestQuantumEntanglementBasic(t *testing.T) {
+	// Test with simple case that should produce 2 paths
+	testData := [][]rune{
+		[]rune(".S."),
+		[]rune("..."),
+		[]rune(".^."),
+		[]rune("..."),
+	}
+	
+	result := quantam_entanglement(testData)
+	if result != 2 {
+		t.Errorf("Expected 2 paths, got %d", result)
+	}
+}
+
+func TestQuantumEntanglementWithTestInput(t *testing.B) {
+	testData := loadTestData()
+	
+	result := quantam_entanglement(testData)
+	// Log the result for manual verification
+	t.Logf("Quantum entanglement paths in test input: %d", result)
+	
+	if result < 0 {
+		t.Errorf("Expected non-negative result, got %d", result)
+	}
+}
+
+func TestQuantumEntanglementConsistency(t *testing.T) {
+	// Run both versions and ensure they give the same result
+	testData := loadTestData()
+	
+	result1 := quantam_entanglement(testData)
+	result2 := quantam_entanglement_detailed(testData)
+	
+	if result1 != result2 {
+		t.Errorf("Inconsistent results: regular=%d, detailed=%d", result1, result2)
+	}
+}
+
 // Benchmark Tests
 func BenchmarkTachyonSpliterTestInput(b *testing.B) {
 	testData := loadTestData()
@@ -164,6 +204,38 @@ func BenchmarkTachyonEmitter(b *testing.B) {
 	
 	for i := 0; i < b.N; i++ {
 		tachyon_emitter(row, positions)
+	}
+}
+
+// Benchmark quantum entanglement functions
+func BenchmarkQuantumEntanglementTestInput(b *testing.B) {
+	testData := loadTestData()
+	
+	b.ResetTimer()
+	
+	for i := 0; i < b.N; i++ {
+		quantam_entanglement(testData)
+	}
+}
+
+func BenchmarkQuantumEntanglementDetailedTestInput(b *testing.B) {
+	testData := loadTestData()
+	
+	b.ResetTimer()
+	
+	for i := 0; i < b.N; i++ {
+		quantam_entanglement_detailed(testData)
+	}
+}
+
+func BenchmarkQuantumEntanglementWithAllocs(b *testing.B) {
+	testData := loadTestData()
+	
+	b.ResetTimer()
+	b.ReportAllocs()
+	
+	for i := 0; i < b.N; i++ {
+		quantam_entanglement(testData)
 	}
 }
 

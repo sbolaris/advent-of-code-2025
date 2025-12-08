@@ -8,7 +8,6 @@ import(
 	"strings"
 	"time"
 	"slices"
-
 )
 
 // function for part A
@@ -35,25 +34,53 @@ func tachyon_spliter(teleporter_data [][]rune) int {
 
 //function for part B
 func quantam_entanglement(teleporter_data [][]rune) int {
-	time_lines := 0
 	num_rows := len(teleporter_data)
 	start_index := strings.Index(string(teleporter_data[0]), "S")
-	tachyon_beam := []int{start_index}
-	//branches := 0
-	splits := 0
+	
+	// Track the number of paths reaching each position at each row
+	// current_paths[position] = number of different paths reaching that position
+	current_paths := map[int]int{start_index: 1}
+	
+	// Process each row
 	for row := 1; row < num_rows; row++ {
-		//old_beam := tachyon_beam
-		tachyon_beam, splits = tachyon_emitter(teleporter_data[row], tachyon_beam)
-		//time_lines += (len(tachyon_beam) -len(old_beam)) * splits *2 // this got me close with 44
-		if row != 1 && splits > 0 {
-			time_lines += len(tachyon_beam)
+		next_paths := make(map[int]int)
+		
+		// For each position that has paths reaching it
+		for pos, path_count := range current_paths {
+			if pos >= 0 && pos < len(teleporter_data[row]) {
+				if teleporter_data[row][pos] == '^' {
+					// Split: each incoming path creates 2 new paths (left and right)
+					left_pos := pos - 1
+					right_pos := pos + 1
+					
+					if left_pos >= 0 {
+						next_paths[left_pos] += path_count
+					}
+					if right_pos < len(teleporter_data[row]) {
+						next_paths[right_pos] += path_count
+					}
+				} else if teleporter_data[row][pos] == '.' {
+					// Continue straight: all paths continue to same position
+					next_paths[pos] += path_count
+				}
+			}
 		}
-		//debug statement
-		//fmt.Println("Time lines so far: ", time_lines, "for row ", row, "with beam positions ", tachyon_beam)
-
+		
+		current_paths = next_paths
+		
+		// Early termination if no paths remain
+		if len(current_paths) == 0 {
+			return 0
+		}
 	}
-
-	return time_lines
+	
+	// Sum all paths that made it to the end
+	total_paths := 0
+	for _, path_count := range current_paths {
+		total_paths += path_count
+	}
+	
+	return total_paths
 }
 
 //subroutines if needed
