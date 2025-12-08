@@ -40,12 +40,13 @@ func quantam_entanglement(teleporter_data [][]rune) int {
 	start_index := strings.Index(string(teleporter_data[0]), "S")
 	tachyon_beam := []int{start_index}
 	//branches := 0
+	splits := 0
 	for row := 1; row < num_rows; row++ {
-		time_lines += len(tachyon_beam)
-		tachyon_beam, _ := tachyon_emitter(teleporter_data[row], tachyon_beam)
-		//check for branches
-		
-
+		old_beam := tachyon_beam
+		tachyon_beam, splits = tachyon_emitter(teleporter_data[row], tachyon_beam)
+		time_lines += (len(tachyon_beam) -len(old_beam)) * splits *2
+		//debug statement
+		//fmt.Println("Time lines so far: ", time_lines, "after row ", row)
 	}
 
 	return time_lines
