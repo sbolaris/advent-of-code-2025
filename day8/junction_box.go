@@ -8,11 +8,30 @@ import(
 	"strings"
 	"time"
 	"slices"
+	"runtime"
+	"sync"
 )
 
 // function for part A
 // given x,y,z from input, find the shortest path to the junction box
 func circuits_optimizer(junction_data [][]int) int {
+	//create max workers based on cpu cores
+	numCores := runtime.NumCPU()
+	fmt.Printf("Using %d CPU cores for optimization\n", numCores)
+	var wg sync.WaitGroup
+	wg.Add(numCores)
+	closest_box := make(chan int, numCores)
+	//create worker pool
+	// iterate over junction data and find nearest junction
+	
+	for _, junction := range junction_data {
+		fmt.Println(junction)
+		go findNearestJunction(junction, junction_data, closest_box, &wg)
+	}
+	wg.Wait()
+	close(circuits)
+	//collect results
+	return 
 
 }
 
@@ -20,6 +39,7 @@ func circuits_optimizer(junction_data [][]int) int {
 
 
 //subroutines
+//load data input
 func loadJunctionData(filename string) [][]int {
 	file, err := os.Open(filename)
 	if err != nil {
@@ -41,6 +61,23 @@ func loadJunctionData(filename string) [][]int {
 		junction_data = append(junction_data, ints)
 	}
 	return junction_data
+}
+
+//find nearsest junction
+func findNearestJunction(current_position []int, junctions [][]int, closest_box chan<- int, wg *sync.WaitGroup) {
+	defer wg.Done()
+	min_distance := -1
+	nearest_index := -1
+	for i, junction := range junctions {
+		if junction != current_position {
+			distance := abs(current_position[0]-junction[0]) + abs(current_position[1]-junction[1]) + abs(current_position[2]-junction[2])
+			if min_distance == -1 || distance < min_distance {
+				min_distance = distance
+				nearest_index = i
+			}
+		}
+	}
+	closest_box <- nearest_index
 }
 
 
