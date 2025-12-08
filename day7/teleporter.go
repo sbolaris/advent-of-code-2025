@@ -36,6 +36,17 @@ func tachyon_spliter(teleporter_data [][]rune) int {
 //function for part B
 func quantam_entanglement(teleporter_data [][]rune) int {
 	time_lines := 0
+	num_rows := len(teleporter_data)
+	start_index := strings.Index(string(teleporter_data[0]), "S")
+	tachyon_beam := []int{start_index}
+	branches := 0
+	for row := 1; row < num_rows; row++ {
+		branches += len(tachyon_beam)
+		tachyon_beam, splits := tachyon_emitter(teleporter_data[row], tachyon_beam)
+		//check for branches
+		
+
+	}
 
 	return time_lines
 }
@@ -102,5 +113,10 @@ func main() {
 	fmt.Printf("Tachyonic Teleporter Calibration Result: %d\n", result)
 	fmt.Printf("Time taken for tachyon_spliter: %v\n", duration)
 
-	//
+	// call quantam_entanglement function
+	start = time.Now()
+	result = quantam_entanglement(teleporter_data)
+	duration = time.Since(start)
+	fmt.Printf("Quantam Entanglement Result: %d\n", result)
+	fmt.Printf("Time taken for quantam_entanglement: %v\n", duration)
 }
