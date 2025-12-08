@@ -8,6 +8,7 @@ import(
 	"bufio"
 	"strings"
 	"time"
+	"runtime"
 )
 
 // function for part A
@@ -25,41 +26,56 @@ func tachyon_spliter(teleporter_data [][]rune) int {
 	splits := 0
 	// iterate over each row
 	for row := 1; row < num_rows; row++ {
-		tachyon_beam, splits =tachyon_emitter(teleporter_data[row], tachyon_beam)
+		tachyon_beam, splits = tachyon_emitter(teleporter_data[row], tachyon_beam)
 		final_splits += splits
 	}
-
+	return final_splits
 }
 
 //function for part B
 
 
 //subroutines if needed
-func tachyon_emitter([]rune, []int) []int, int {
+func tachyon_emitter(row []rune, beam_positions []int) ([]int, int) {
 	new_beam_positions := []int{}
 	splits := 0
 	// process the current row with the current beam positions
 	for _, pos := range beam_positions {
-		if row[pos] == '^' {
-			// split the beam
-			new_beam_positions = append(new_beam_positions, pos-1)
-			new_beam_positions = append(new_beam_positions, pos+1)
-			splits++
-		} else if row[pos] == '.' {
-			// continue straight down
-			new_beam_positions = append(new_beam_positions, pos)
+		if pos >= 0 && pos < len(row) {
+			if row[pos] == '^' {
+				// split the beam
+				new_beam_positions = append(new_beam_positions, pos-1)
+				new_beam_positions = append(new_beam_positions, pos+1)
+				splits++
+			} else if row[pos] == '.' {
+				// continue straight down
+				new_beam_positions = append(new_beam_positions, pos)
+			}
 		}
 	}
 
-	// placeholder
 	return new_beam_positions, splits
 }
 
 // main function to read input solve issues with tachyonic teleporter
 func main() {
 	fmt.Println("Tachyonic Teleporter Calibration Program")
+	
+	// Check if benchmark mode is requested
+	if len(os.Args) > 1 && os.Args[1] == "benchmark" {
+		RunCustomBenchmarks()
+		return
+	}
+	
+	// Try test input first, then input.txt
+	fileName := "input.txt"
+	if _, err := os.Stat("test_input.txt"); err == nil {
+		fileName = "test_input.txt"
+		fmt.Println("Using test_input.txt for debugging")
+	}
+	
 	// read input file
-	file, err := os.Open("input.txt")
+	file, err := os.Open(fileName)
 	if err != nil {
 		fmt.Println("Error reading file:", err)
 		return
@@ -79,5 +95,4 @@ func main() {
 	duration := time.Since(start)
 	fmt.Printf("Tachyonic Teleporter Calibration Result: %d\n", result)
 	fmt.Printf("Time taken for tachyon_spliter: %v\n", duration)
-
 }
