@@ -36,8 +36,23 @@ func tachyon_spliter(teleporter_data [][]rune) int {
 
 //subroutines if needed
 func tachyon_emitter([]rune, []int) []int, int {
+	new_beam_positions := []int{}
+	splits := 0
+	// process the current row with the current beam positions
+	for _, pos := range beam_positions {
+		if row[pos] == '^' {
+			// split the beam
+			new_beam_positions = append(new_beam_positions, pos-1)
+			new_beam_positions = append(new_beam_positions, pos+1)
+			splits++
+		} else if row[pos] == '.' {
+			// continue straight down
+			new_beam_positions = append(new_beam_positions, pos)
+		}
+	}
+
 	// placeholder
-	return []int{}, int
+	return new_beam_positions, splits
 }
 
 // main function to read input solve issues with tachyonic teleporter
