@@ -26,14 +26,19 @@ func circuits_optimizer(junction_data [][]int) int {
 	// iterate over junction data and find nearest junction
 	for _, junction := range junction_data {
 		fmt.Println(junction)
-		go findNearestJunction(junction, junction_data, closest_box, &wg)
+		go findNearestJunction(junction, junction_data, closest_box)
+		defer wg.Done()
 	}
-	wg.Wait()
-	close(closest_box)
+	
+	
 	//collect results
 	for boxIndex := range closest_box {
 		fmt.Println("Nearest Junction Box Index: ", boxIndex)
 	}
+	go func() {
+        wg.Wait()
+        close(closest_box)
+    }()
 	return 0
 
 }
@@ -67,8 +72,7 @@ func loadJunctionData(filename string) [][]int {
 }
 
 //find nearsest junction
-func findNearestJunction(current_position []int, junctions [][]int, closest_box chan<- int, wg *sync.WaitGroup) {
-	defer wg.Done()
+func findNearestJunction(current_position []int, junctions [][]int, closest_box chan<- int) {
 	min_distance := -1.0
 	nearest_index := -1
 	for i, junction := range junctions {
