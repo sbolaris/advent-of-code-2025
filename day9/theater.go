@@ -39,13 +39,52 @@ func largest_theater_area_with_green(tile_data [][]int) int {
 	// find largest rectangle of red and green tiles where the corner tiles are red
 	// corner tiles are 1
 	// all the inside tiles are 2
-	for _, row1 := range green_floor {
-		fmt.Println(row1)
+	// for _, row1 := range green_floor {
+	// 	fmt.Println(row1)
+	// }
+	
+	// Find largest rectangle with optimizations
+	for r1 := 0; r1 < len(green_floor); r1++ {
+		for c1 := 0; c1 < len(green_floor[r1]); c1++ {
+			if green_floor[r1][c1] == 1 { // potential top-left corner (must be red tile)
+				// Early pruning: if remaining rows can't give us a larger area, skip
+				max_possible_height := len(green_floor) - r1
+				if max_possible_height * len(green_floor[r1]) <= max_area {
+					break
+				}
+				
+				for r2 := r1; r2 < len(green_floor); r2++ {
+					// Early pruning: if current height can't give larger area, skip
+					current_height := r2 - r1 + 1
+					if current_height * len(green_floor[r1]) <= max_area {
+						continue
+					}
+					
+					for c2 := c1; c2 < len(green_floor[r2]); c2++ {
+						if green_floor[r2][c2] == 1 { // potential bottom-right corner (must be red tile)
+							// Early exit if this rectangle can't be larger than current max
+							area := (r2 - r1 + 1) * (c2 - c1 + 1)
+							if area <= max_area {
+								continue
+							}
+							
+							// Check if this forms a valid rectangle
+							if isValidRectangle(green_floor, r1, c1, r2, c2) {
+								max_area = area
+								// Early termination for this row if we found max possible
+								if area == max_possible_height * (len(green_floor[r1]) - c1) {
+									goto next_r1
+								}
+							}
+						}
+					}
+				}
+				next_r1:
+			}
+		}
 	}
 	return max_area
 }
-
-
 
 //subroutines
 func loadSeatData(fileName string) [][]int {
@@ -155,7 +194,24 @@ func floorWithGreenTiles(tile_data [][]int) [][]int {
 	return green_floor
 }
 
-
+// Check if the rectangle formed by (r1, c1) and (r2, c2) has red corners and green interior
+func isValidRectangle(green_floor [][]int, r1, c1, r2, c2 int) bool {
+	// Check that corners are boundary tiles (1's or 2's)
+	if (green_floor[r1][c1] == 0) || (green_floor[r1][c2] == 0) || 
+	   (green_floor[r2][c1] == 0) || (green_floor[r2][c2] == 0) {
+		return false
+	}
+	
+	// Check that all tiles in rectangle are filled (1's or 2's, no 0's)
+	for r := r1; r <= r2; r++ {
+		for c := c1; c <= c2; c++ {
+			if green_floor[r][c] == 0 {
+				return false
+			}
+		}
+	}
+	return true
+}
 
 //main function
 func main() {
@@ -168,7 +224,7 @@ func main() {
 	tile_data := loadSeatData(fileName)
 	// Part A: Find largest theater area
 	largest_area := largest_theater_area(tile_data)
-	fmt.Printf("Largest theater area: %d\n", largest_area)
+	fmt.Printf("Largest theater area: %d\n", largest_area) //4759420470
 	// Part B: Find largest theater area with green tiles
 	largest_area_with_green := largest_theater_area_with_green(tile_data)
 	fmt.Printf("Largest theater area with green tiles: %d\n", largest_area_with_green)
