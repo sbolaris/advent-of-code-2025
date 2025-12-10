@@ -7,6 +7,8 @@ import(
 	"bufio"
 	"strings"
 	"math"
+	"time"
+	"runtime"
 )
 
 //part A
@@ -36,54 +38,103 @@ func largest_theater_area(tile_data [][]int) int {
 func largest_theater_area_with_green(tile_data [][]int) int {
 	green_floor := floorWithGreenTiles(tile_data)
 	max_area := 0
-	// find largest rectangle of red and green tiles where the corner tiles are red
-	// corner tiles are 1
-	// all the inside tiles are 2
+	// ...existing code...
 	// for _, row1 := range green_floor {
 	// 	fmt.Println(row1)
 	// }
 	
-	// Find largest rectangle with optimizations
-	for r1 := 0; r1 < len(green_floor); r1++ {
-		for c1 := 0; c1 < len(green_floor[r1]); c1++ {
-			if green_floor[r1][c1] == 1 { // potential top-left corner (must be red tile)
-				// Early pruning: if remaining rows can't give us a larger area, skip
-				max_possible_height := len(green_floor) - r1
-				if max_possible_height * len(green_floor[r1]) <= max_area {
-					break
+	// Precompute valid tile pairs to avoid redundant checks
+	validPairs := [][]int{}
+	for i := 0; i < len(tile_data); i++ {
+		for j := i + 1; j < len(tile_data); j++ {
+			r1, c1 := tile_data[i][0], tile_data[i][1]
+			r2, c2 := tile_data[j][0], tile_data[j][1]
+			
+			// Only store pairs that form proper rectangles
+			if r1 != r2 && c1 != c2 {
+				// Normalize coordinates
+				if r1 > r2 {
+					r1, r2 = r2, r1
+				}
+				if c1 > c2 {
+					c1, c2 = c2, c1
 				}
 				
-				for r2 := r1; r2 < len(green_floor); r2++ {
-					// Early pruning: if current height can't give larger area, skip
-					current_height := r2 - r1 + 1
-					if current_height * len(green_floor[r1]) <= max_area {
-						continue
-					}
-					
-					for c2 := c1; c2 < len(green_floor[r2]); c2++ {
-						if green_floor[r2][c2] == 1 { // potential bottom-right corner (must be red tile)
-							// Early exit if this rectangle can't be larger than current max
-							area := (r2 - r1 + 1) * (c2 - c1 + 1)
-							if area <= max_area {
-								continue
-							}
-							
-							// Check if this forms a valid rectangle
-							if isValidRectangle(green_floor, r1, c1, r2, c2) {
-								max_area = area
-								// Early termination for this row if we found max possible
-								if area == max_possible_height * (len(green_floor[r1]) - c1) {
-									goto next_r1
-								}
-							}
-						}
-					}
+				// Quick area check before expensive validation
+				area := (r2 - r1 + 1) * (c2 - c1 + 1)
+				if area > max_area {
+					validPairs = append(validPairs, []int{r1, c1, r2, c2, area})
 				}
-				next_r1:
 			}
 		}
 	}
+	
+	// Sort by area descending to check largest rectangles first
+	for i := 0; i < len(validPairs)-1; i++ {
+		for j := i + 1; j < len(validPairs); j++ {
+			if validPairs[i][4] < validPairs[j][4] {
+				validPairs[i], validPairs[j] = validPairs[j], validPairs[i]
+			}
+		}
+	}
+	
+	// Check rectangles starting from largest
+	for _, pair := range validPairs {
+		r1, c1, r2, c2, area := pair[0], pair[1], pair[2], pair[3], pair[4]
+		
+		if area <= max_area {
+			break // All remaining rectangles are smaller
+		}
+		
+		// Quick validation with early exit
+		valid := true
+		outer:
+		for r := r1; r <= r2; r++ {
+			for c := c1; c <= c2; c++ {
+				if green_floor[r][c] == 0 {
+					valid = false
+					break outer
+				}
+			}
+		}
+		
+		if valid {
+			max_area = area
+		}
+	}
+	
 	return max_area
+}
+
+// Fast O(n) algorithm for largest rectangle in histogram
+func largestRectInHistogram(heights []int) int {
+	stack := []int{}
+	maxArea := 0
+	
+	for i := 0; i <= len(heights); i++ {
+		h := 0
+		if i < len(heights) {
+			h = heights[i]
+		}
+		
+		for len(stack) > 0 && h < heights[stack[len(stack)-1]] {
+			height := heights[stack[len(stack)-1]]
+			stack = stack[:len(stack)-1]
+			
+			width := i
+			if len(stack) > 0 {
+				width = i - stack[len(stack)-1] - 1
+			}
+			
+			area := height * width
+			if area > maxArea {
+				maxArea = area
+			}
+		}
+		stack = append(stack, i)
+	}
+	
+	return maxArea
 }
 
 //subroutines
@@ -222,12 +273,22 @@ func main() {
 	}
 	// load red tile data from file
 	tile_data := loadSeatData(fileName)
+
 	// Part A: Find largest theater area
+	startA := time.Now()
 	largest_area := largest_theater_area(tile_data)
+	elapsedA := time.Since(startA)
+	var memStatsA runtime.MemStats
+	runtime.ReadMemStats(&memStatsA)
 	fmt.Printf("Largest theater area: %d\n", largest_area) //4759420470
+	fmt.Printf("Part A took %s and used %d bytes of memory\n", elapsedA, memStatsA.Alloc)
+
 	// Part B: Find largest theater area with green tiles
+	startB := time.Now()
 	largest_area_with_green := largest_theater_area_with_green(tile_data)
+	elapsedB := time.Since(startB)
+	var memStatsB runtime.MemStats
+	runtime.ReadMemStats(&memStatsB)
 	fmt.Printf("Largest theater area with green tiles: %d\n", largest_area_with_green)
-
-
+	fmt.Printf("Part B took %s and used %d bytes of memory\n", elapsedB, memStatsB.Alloc)
 }
