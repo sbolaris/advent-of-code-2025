@@ -105,6 +105,107 @@ func circuits_optimizer(junction_data [][]int, total_con int) int {
 	return result
 }
 
+//part B
+// need to determine the first connection that creates one big circuit
+// take those two junction boxes x coordinates and return the multipled value
+// example multiplies the x coodinates of the first two boxes bu answer want the last 2 
+func find_complete_circuit_path(junction_data [][]int) int {
+	// Try each junction box as starting point
+	for start := 0; start < len(junction_data); start++ {
+		// Union-Find setup for this attempt
+		parent := make([]int, len(junction_data))
+		groupSize := make([]int, len(junction_data))
+		for i := range parent {
+			parent[i] = i
+			groupSize[i] = 1
+		}
+		
+		var find func(int) int
+		find = func(x int) int {
+			if parent[x] != x {
+				parent[x] = find(parent[x])
+			}
+			return parent[x]
+		}
+		
+		union := func(x, y int) bool {
+			rootX, rootY := find(x), find(y)
+			if rootX == rootY {
+				return false
+			}
+			if groupSize[rootX] < groupSize[rootY] {
+				rootX, rootY = rootY, rootX
+			}
+			parent[rootY] = rootX
+			groupSize[rootX] += groupSize[rootY]
+			return true
+		}
+		
+		// Build connections starting from this junction
+		connected := make([]bool, len(junction_data))
+		connected[start] = true
+		connections_made := 0
+		
+		// Keep connecting to closest unconnected junction until all are connected
+		for connections_made < len(junction_data)-1 {
+			closest_dist := math.Inf(1)
+			closest_pair := []int{-1, -1}
+			
+			// Find closest pair where one is connected and one isn't
+			for i := 0; i < len(junction_data); i++ {
+				for j := i + 1; j < len(junction_data); j++ {
+					// Skip if both already connected or both unconnected
+					if connected[i] == connected[j] {
+						continue
+					}
+					
+					dist := distance(junction_data[i], junction_data[j])
+					if dist < closest_dist {
+						closest_dist = dist
+						closest_pair = []int{i, j}
+					}
+				}
+			}
+			
+			// Make the connection
+			if closest_pair[0] != -1 {
+				i, j := closest_pair[0], closest_pair[1]
+				if union(i, j) {
+					connected[i] = true
+					connected[j] = true
+					connections_made++
+					
+					// Check if all are now in one group
+					root := find(0)
+					all_connected := true
+					for k := 1; k < len(junction_data); k++ {
+						if find(k) != root {
+							all_connected = false
+							break
+						}
+					}
+					
+					if all_connected {
+						// Found complete connection! Calculate result
+						x1 := junction_data[i][0]
+						x2 := junction_data[j][0]
+						result := x1 * x2
+						
+						fmt.Printf("Complete connection found starting from junction %d\n", start)
+						fmt.Printf("Last connection: junction %d (x=%d) to junction %d (x=%d)\n", i, x1, j, x2)
+						fmt.Printf("X-coordinates product: %d * %d = %d\n", x1, x2, result)
+						
+						return result
+					}
+				}
+			} else {
+				break // No more connections possible
+			}
+		}
+	}
+	
+	return -1 // No complete circuit found
+}
 
 //subroutines
 //load data input
@@ -169,12 +270,12 @@ func main() {
 	startA := time.Now()
 	resultA := circuits_optimizer(junction_data, connections)
 	elapsedA := time.Since(startA)
-	fmt.Printf("Part A: Optimal Circuit Path Length: %d (Time: %s)\n", resultA, elapsedA)
+	fmt.Printf("Part A: Optimal Circuit Path Length: %d (Time: %s)\n", resultA, elapsedA)//84968
 
 	// Part B
-	// startB := time.Now()
-	// resultB := another_function(junction_data)
-	// elapsedB := time.Since(startB)
-	// fmt.Printf("Part B: Result: %d (Time: %s)\n", resultB, elapsedB)
+	startB := time.Now()
+	resultB := find_complete_circuit_path(junction_data)
+	elapsedB := time.Since(startB)
+	fmt.Printf("Part B: Complete Circuit X-Product: %d (Time: %s)\n", resultB, elapsedB)
 
 }
