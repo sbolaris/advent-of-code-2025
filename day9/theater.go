@@ -42,6 +42,42 @@ func largest_theater_area_with_green(tile_data [][]int) int {
 	for _, row1 := range green_floor {
 		fmt.Println(row1)
 	}
+	
+	// Find largest rectangle with opposite corners as red tiles (1s)
+	for i := 0; i < len(tile_data); i++ {
+		for j := i + 1; j < len(tile_data); j++ {
+			r1, c1 := tile_data[i][0], tile_data[i][1]
+			r2, c2 := tile_data[j][0], tile_data[j][1]
+			
+			// Skip if same row or column (not a proper rectangle)
+			if r1 == r2 || c1 == c2 { continue }
+			
+			// Normalize coordinates (ensure r1,c1 is top-left)
+			if r1 > r2 { r1, r2 = r2, r1 }
+			if c1 > c2 { c1, c2 = c2, c1 }
+			
+			area := (r2 - r1 + 1) * (c2 - c1 + 1)
+			if area <= max_area { continue }
+			
+			// Check that opposite corners are red tiles (1s)
+			if green_floor[r1][c1] == 1 && green_floor[r2][c2] == 1 {
+				// Check that entire rectangle contains only 1s and 2s (no 0s)
+				valid := true
+				for r := r1; r <= r2 && valid; r++ {
+					for c := c1; c <= c2 && valid; c++ {
+						if green_floor[r][c] == 0 {
+							valid = false
+						}
+					}
+				}
+				
+				if valid {
+					max_area = area
+				}
+			}
+		}
+	}
+	
 	return max_area
 }
 
