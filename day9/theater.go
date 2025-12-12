@@ -39,41 +39,60 @@ func largest_theater_area_with_green(tile_data [][]int) int {
 	// find largest rectangle of red and green tiles where the corner tiles are red
 	// corner tiles are 1
 	// all the inside tiles are 2
-	for _, row1 := range green_floor {
-		fmt.Println(row1)
-	}
+	// for _, row1 := range green_floor {
+	// 	fmt.Println(row1)
+	// }
 	
-	// Find largest rectangle with opposite corners as red tiles (1s)
+	// Pre-compute all valid rectangle candidates and sort by area
+	type rectCandidate struct {
+		i, j, r1, c1, r2, c2, area int
+	}
+	var candidates []rectCandidate
+	
 	for i := 0; i < len(tile_data); i++ {
 		for j := i + 1; j < len(tile_data); j++ {
 			r1, c1 := tile_data[i][0], tile_data[i][1]
 			r2, c2 := tile_data[j][0], tile_data[j][1]
 			
-			// Skip if same row or column (not a proper rectangle)
 			if r1 == r2 || c1 == c2 { continue }
 			
-			// Normalize coordinates (ensure r1,c1 is top-left)
 			if r1 > r2 { r1, r2 = r2, r1 }
 			if c1 > c2 { c1, c2 = c2, c1 }
 			
 			area := (r2 - r1 + 1) * (c2 - c1 + 1)
-			if area <= max_area { continue }
-			
-			// Check that opposite corners are red tiles (1s)
-			if green_floor[r1][c1] == 1 && green_floor[r2][c2] == 1 {
-				// Check that entire rectangle contains only 1s and 2s (no 0s)
-				valid := true
-				for r := r1; r <= r2 && valid; r++ {
-					for c := c1; c <= c2 && valid; c++ {
-						if green_floor[r][c] == 0 {
-							valid = false
-						}
+			candidates = append(candidates, rectCandidate{i, j, r1, c1, r2, c2, area})
+		}
+	}
+	
+	// Sort by area descending (check largest first)
+	for i := 0; i < len(candidates)-1; i++ {
+		for j := i + 1; j < len(candidates); j++ {
+			if candidates[i].area < candidates[j].area {
+				candidates[i], candidates[j] = candidates[j], candidates[i]
+			}
+		}
+	}
+	
+	// Check candidates starting from largest
+	for _, cand := range candidates {
+		if cand.area <= max_area {
+			break // All remaining rectangles are smaller
+		}
+		
+		// Quick corner check before expensive validation
+		if green_floor[cand.r1][cand.c1] == 1 && green_floor[cand.r2][cand.c2] == 1 {
+			// Check rectangle area with early exit
+			valid := true
+			for r := cand.r1; r <= cand.r2 && valid; r++ {
+				for c := cand.c1; c <= cand.c2 && valid; c++ {
+					if green_floor[r][c] == 0 {
+						valid = false
 					}
 				}
-				
-				if valid {
-					max_area = area
-				}
+			}
+			
+			if valid {
+				max_area = cand.area
 			}
 		}
 	}
@@ -212,7 +231,7 @@ func main() {
 	tile_data := loadSeatData(fileName)
 	// Part A: Find largest theater area
 	largest_area := largest_theater_area(tile_data)
-	fmt.Printf("Largest theater area: %d\n", largest_area)
+	fmt.Printf("Largest theater area: %d\n", largest_area) //4759420470
 	// Part B: Find largest theater area with green tiles
 	largest_area_with_green := largest_theater_area_with_green(tile_data)
 	fmt.Printf("Largest theater area with green tiles: %d\n", largest_area_with_green)
