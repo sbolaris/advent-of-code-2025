@@ -7,8 +7,6 @@ import(
 	"bufio"
 	"strings"
 	"math"
-	"time"
-	"runtime"
 )
 
 //part A
@@ -34,127 +32,20 @@ func largest_theater_area(tile_data [][]int) int {
 }
 
 //part B
+// can only do red or green tiles 
 func largest_theater_area_with_green(tile_data [][]int) int {
-	// Skip creating green_floor entirely - work directly with coordinates
-	maxArea := 0
-	
-	// Check all pairs of tile_data points as potential rectangle corners
-	for i := 0; i < len(tile_data); i++ {
-		for j := i + 1; j < len(tile_data); j++ {
-			r1, c1 := tile_data[i][0], tile_data[i][1]
-			r2, c2 := tile_data[j][0], tile_data[j][1]
-			
-			// Skip invalid rectangles
-			if r1 == r2 || c1 == c2 {
-				continue
-			}
-			
-			// Normalize coordinates
-			if r1 > r2 {
-				r1, r2 = r2, r1
-			}
-			if c1 > c2 {
-				c1, c2 = c2, c1
-			}
-			
-			area := (r2 - r1 + 1) * (c2 - c1 + 1)
-			if area > maxArea {
-				// Check if this rectangle is "valid" by ensuring it's properly bounded
-				// by the tile_data points (geometric validation instead of array lookup)
-				if isGeometricallyValid(tile_data, r1, c1, r2, c2) {
-					maxArea = area
-				}
-			}
-		}
+	green_floor := floorWithGreenTiles(tile_data)
+	max_area := 0
+	// find largest rectangle of red and green tiles where the corner tiles are red
+	// corner tiles are 1
+	// all the inside tiles are 2
+	for _, row1 := range green_floor {
+		fmt.Println(row1)
 	}
-	
-	return maxArea
+	return max_area
 }
 
-// Fast geometric validation without needing the 2D array
-func isGeometricallyValid(tile_data [][]int, r1, c1, r2, c2 int) bool {
-	// Check if all four corners are within or on the polygon boundary
-	corners := [][]int{{r1, c1}, {r1, c2}, {r2, c1}, {r2, c2}}
-	
-	for _, corner := range corners {
-		if !isPointInOrOnPolygon(corner[0], corner[1], tile_data) {
-			return false
-		}
-	}
-	
-	// Check if rectangle is properly enclosed (no gaps in boundary)
-	// Sample a few interior points to ensure they would be filled
-	midR, midC := (r1+r2)/2, (c1+c2)/2
-	if !isPointInPolygon(midR, midC, tile_data) {
-		return false
-	}
-	
-	return true
-}
 
-// Check if a point is inside the polygon using ray casting
-func isPointInPolygon(x, y int, polygon [][]int) bool {
-	intersections := 0
-	n := len(polygon)
-	
-	for i := 0; i < n; i++ {
-		j := (i + 1) % n
-		x1, y1 := float64(polygon[i][0]), float64(polygon[i][1])
-		x2, y2 := float64(polygon[j][0]), float64(polygon[j][1])
-		
-		if ((y1 > float64(y)) != (y2 > float64(y))) {
-			xIntersection := x1 + (float64(y)-y1)*(x2-x1)/(y2-y1)
-			if xIntersection > float64(x) {
-				intersections++
-			}
-		}
-	}
-	return intersections%2 == 1
-}
-
-// Check if point is inside polygon or on boundary
-func isPointInOrOnPolygon(x, y int, polygon [][]int) bool {
-	// Check if point is a vertex
-	for _, point := range polygon {
-		if point[0] == x && point[1] == y {
-			return true
-		}
-	}
-	
-	// Check if point is inside
-	return isPointInPolygon(x, y, polygon)
-}
-
-// Fast O(n) algorithm for largest rectangle in histogram
-func largestRectInHistogram(heights []int) int {
-	stack := []int{}
-	maxArea := 0
-	
-	for i := 0; i <= len(heights); i++ {
-		h := 0
-		if i < len(heights) {
-			h = heights[i]
-		}
-		
-		for len(stack) > 0 && h < heights[stack[len(stack)-1]] {
-			height := heights[stack[len(stack)-1]]
-			stack = stack[:len(stack)-1]
-			
-			width := i
-			if len(stack) > 0 {
-				width = i - stack[len(stack)-1] - 1
-			}
-			
-			area := height * width
-			if area > maxArea {
-				maxArea = area
-			}
-		}
-		stack = append(stack, i)
-	}
-	
-	return maxArea
-}
 
 //subroutines
 func loadSeatData(fileName string) [][]int {
@@ -184,19 +75,95 @@ func loadSeatData(fileName string) [][]int {
 	return seat_data
 }
 
-// Helper function to format memory usage in human-readable format
-func formatBytes(bytes uint64) string {
-	const unit = 1024
-	if bytes < unit {
-		return fmt.Sprintf("%d B", bytes)
+//floormap with green tiles
+// linerally connect the red tiles with green tiles and fill in the floor
+func floorWithGreenTiles(tile_data [][]int) [][]int {
+	// Find dimensions needed
+	maxRow, maxCol := 0, 0
+	for _, tile := range tile_data {
+		if tile[0] > maxRow { maxRow = tile[0] }
+		if tile[1] > maxCol { maxCol = tile[1] }
 	}
-	div, exp := uint64(unit), 0
-	for n := bytes / unit; n >= unit; n /= unit {
-		div *= unit
-		exp++
+	
+	// Create 2D slice
+	green_floor := make([][]int, maxRow+1)
+	for i := range green_floor {
+		green_floor[i] = make([]int, maxCol+1)
 	}
-	return fmt.Sprintf("%.1f %cB", float64(bytes)/float64(div), "KMGTPE"[exp])
+	
+	// Place red tiles at polygon vertices
+	for _, tile := range tile_data {
+		green_floor[tile[0]][tile[1]] = 1
+	}
+
+	// Connect polygon edges between consecutive vertices
+	for i := 0; i < len(tile_data); i++ {
+		j := (i + 1) % len(tile_data)
+		r1, c1 := tile_data[i][0], tile_data[i][1]
+		r2, c2 := tile_data[j][0], tile_data[j][1]
+		
+		// Draw line between consecutive vertices using Bresenham's algorithm
+		dr := int(math.Abs(float64(r2 - r1)))
+		dc := int(math.Abs(float64(c2 - c1)))
+		sr := 1
+		if r1 > r2 { sr = -1 }
+		sc := 1
+		if c1 > c2 { sc = -1 }
+		err := dr - dc
+		
+		r, c := r1, c1
+		for {
+			if green_floor[r][c] == 0 {
+				green_floor[r][c] = 2 // Mark edge as green if not already red
+			}
+			
+			if r == r2 && c == c2 { break }
+			
+			e2 := 2 * err
+			if e2 > -dc {
+				err -= dc
+				r += sr
+			}
+			if e2 < dr {
+				err += dr
+				c += sc
+			}
+		}
+	}
+
+	// Fill polygon interior using ray casting
+	for row := 0; row < len(green_floor); row++ {
+		for col := 0; col < len(green_floor[row]); col++ {
+			if green_floor[row][col] == 0 && isPointInPolygon(row, col, tile_data) {
+				green_floor[row][col] = 2
+			}
+		}
+	}
+	
+	return green_floor
 }
+
+// Helper function for polygon fill - ray casting algorithm
+func isPointInPolygon(x, y int, polygon [][]int) bool {
+	intersections := 0
+	n := len(polygon)
+	
+	for i := 0; i < n; i++ {
+		j := (i + 1) % n
+		x1, y1 := float64(polygon[i][0]), float64(polygon[i][1])
+		x2, y2 := float64(polygon[j][0]), float64(polygon[j][1])
+		
+		if ((y1 > float64(y)) != (y2 > float64(y))) {
+			xIntersection := x1 + (float64(y)-y1)*(x2-x1)/(y2-y1)
+			if xIntersection > float64(x) {
+				intersections++
+			}
+		}
+	}
+	return intersections%2 == 1
+}
+
+
 
 //main function
 func main() {
@@ -207,22 +174,12 @@ func main() {
 	}
 	// load red tile data from file
 	tile_data := loadSeatData(fileName)
-
 	// Part A: Find largest theater area
-	startA := time.Now()
 	largest_area := largest_theater_area(tile_data)
-	elapsedA := time.Since(startA)
-	var memStatsA runtime.MemStats
-	runtime.ReadMemStats(&memStatsA)
-	fmt.Printf("Largest theater area: %d\n", largest_area) //4759420470
-	fmt.Printf("Part A took %s and used %s of memory\n", elapsedA, formatBytes(memStatsA.Alloc))
-
+	fmt.Printf("Largest theater area: %d\n", largest_area)
 	// Part B: Find largest theater area with green tiles
-	startB := time.Now()
 	largest_area_with_green := largest_theater_area_with_green(tile_data)
-	elapsedB := time.Since(startB)
-	var memStatsB runtime.MemStats
-	runtime.ReadMemStats(&memStatsB)
 	fmt.Printf("Largest theater area with green tiles: %d\n", largest_area_with_green)
-	fmt.Printf("Part B took %s and used %s of memory\n", elapsedB, formatBytes(memStatsB.Alloc))
+
+
 }
