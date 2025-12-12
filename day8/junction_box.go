@@ -18,96 +18,83 @@ import(
 func circuits_optimizer(junction_data [][]int, total_con int) int {
 	// Create a structure to hold all distances
 	connections_count := 0
-	junction_distance := make([][]int, len(junction_data))
-	//create distance matrix
-	for i := 0; i < len(junction_data); i++ {
-		junction_distance[i] = make([]int, len(junction_data))
-		for j := 0; j < len(junction_data); j++ {
-			if i == j {
-				junction_distance[i][j] = 0
-			} else {
-				dist := distance(junction_data[i], junction_data[j])
-				junction_distance[i][j] = int(dist * 1000)  //scale to avoid float issues
+	
+	// Use Union-Find for simpler connection tracking
+	parent := make([]int, len(junction_data))
+	groupSize := make([]int, len(junction_data))
+	for i := range parent {
+		parent[i] = i
+		groupSize[i] = 1
+	}
+	
+	// Find root of a group
+	var find func(int) int
+	find = func(x int) int {
+		if parent[x] != x {
+			parent[x] = find(parent[x])
+		}
+		return parent[x]
+	}
+	
+	// Union two groups
+	union := func(x, y int) {
+		rootX, rootY := find(x), find(y)
+		if rootX != rootY {
+			if groupSize[rootX] < groupSize[rootY] {
+				rootX, rootY = rootY, rootX
 			}
+			parent[rootY] = rootX
+			groupSize[rootX] += groupSize[rootY]
+			connections_count++
 		}
 	}
-	//print out junction distance matrix
-	// for i := 0; i < len(junction_distance); i++ {
-	// 	fmt.Println(junction_distance[i])
-	// }
-	// 0-19-
-	//
-
-	connections := [][]int{}
-	//go through distance matrix and find closest pairs using index to join int to connections
-	for i := 0; i < len(junction_distance); i++ {
-		//print out what is in connections
-		for _, conn := range connections {
-			fmt.Println("Current connection:", conn)
+	
+	// Create list of all possible connections with distances
+	type edge struct {
+		i, j int
+		dist int
+	}
+	
+	edges := []edge{}
+	for i := 0; i < len(junction_data); i++ {
+		for j := i + 1; j < len(junction_data); j++ {
+			dist := distance(junction_data[i], junction_data[j])
+			edges = append(edges, edge{i, j, int(dist * 1000)})
 		}
-
-		if connections_count == total_con {
+	}
+	
+	// Sort edges by distance (shortest first)
+	sort.Slice(edges, func(i, j int) bool {
+		return edges[i].dist < edges[j].dist
+	})
+	
+	// Connect closest pairs until we reach total_con connections
+	for _, e := range edges {
+		if connections_count >= total_con {
 			break
 		}
-		if containsConnection(connections, i) >=0 {
-			continue
-		}
-		// find min distance in row i
-		//zero := slices.Index(junction_distance[i], slices.Min(junction_distance[i]))
-		min_dist := slices.Min(slices.Delete(junction_distance[i], i, i+1))  //remove self-distance
-		min_index := slices.Index(junction_distance[i], min_dist) //+1 to account for deleted self-distance
-		if min_index >= i {
-			min_index +=1  //adjust index after deletion
-		}
-		fmt.Println("Junction ", i, " closest to Junction ", min_index, " with distance ", min_dist)
-		// if min_index == i {
-		// 	continue
-		// }
-		// if nieghbor not already connected, connect them in new entry
-		if containsConnection(connections, i,) <0 && containsConnection(connections,min_index)<0 {
-			connections = append(connections, []int{i, min_index})
-			connections_count +=1
-			continue
-		}
-		//if one junction is already connected, connect the other to it
-		if containsConnection(connections, i) >=0 && containsConnection(connections,min_index)<0 {
-			index := containsConnection(connections, i)
-			connections[index] = append(connections[index], min_index)
-			connections_count +=1
-			continue
-		}
-		if containsConnection(connections, min_index) >=0 && containsConnection(connections,i)<0 {
-			index := containsConnection(connections, min_index)
-			connections[index] = append(connections[index], i)
-			connections_count +=1
-			continue
-		}
-		if containsConnection(connections, i) >=0 && containsConnection(connections,min_index)>=0 {
-			index1 := containsConnection(connections, i)
-			index2 := containsConnection(connections, min_index)
-			// combine the two connections to one array and delete the second
-			if index1 != index2 {
-				connections[index1] = append(connections[index1], connections[index2]...)
-				//delete index2
-				connections = append(connections[:index2], connections[index2+1:]...)
-				connections_count +=1
-			}
-		}
+		union(e.i, e.j)
 	}
 	
-	//sort connections by size of the list and multiply the size of the top 3 connections
-	sort.Slice(connections, func(i, j int) bool {
-		return len(connections[i]) > len(connections[j])
-	})
-	//print out connections
-	for _, conn := range connections {
-		fmt.Println("Junction conns", conn)
+	// Count sizes of each group
+	groupSizes := make(map[int]int)
+	for i := 0; i < len(junction_data); i++ {
+		root := find(i)
+		groupSizes[root] = groupSize[root]
 	}
 	
-	total_length := len(connections[0])*len(connections[1])*len(connections[2])
-	return total_length
+	// Get the three largest groups
+	sizes := []int{}
+	for _, size := range groupSizes {
+		sizes = append(sizes, size)
+	}
+	sort.Sort(sort.Reverse(sort.IntSlice(sizes)))
+	
+	// Print groups for debugging
+	fmt.Printf("Group sizes: %v\n", sizes)
+	
+	return sizes[0] * sizes[1] * sizes[2]
 }
-
 
 //subroutines
 //load data input
@@ -154,7 +141,6 @@ func containsConnection(connections [][]int, j1 int) int {
 	}
 	return index
 }
-
 
 //main function
 func main() {
